@@ -98,7 +98,8 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 3771061048342558472, guid: 3157287b39e4b554bb178a606711bf74, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
@@ -138,6 +139,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _shader: {fileID: 4800000, guid: f9ca02be7994d95438f520d5723bc431, type: 3}
-  _maxDistance: 5
-  _pointSize: 0.1
+  _maxDistance: 10
+  _pointSize: 0.025
   _source: {fileID: 6815852135497074865}
