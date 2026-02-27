@@ -1,3 +1,4 @@
+using System;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnitySensors.Attribute;
@@ -7,6 +8,7 @@ using UnitySensors.Interface.Sensor.PointCloud;
 using UnitySensors.Sensor;
 using UnitySensors.Utils.PointCloud;
 using UnitySensors.Visualization;
+using Object = UnityEngine.Object;
 
 namespace Script
 {
@@ -110,6 +112,20 @@ namespace Script
             _argsBuffer.SetData(_args);
 
             _cachedPointsCount = _sourceInterface.pointsNum;
+        }
+
+        // TODO: Replace this with editor version
+        private void OnGUI()
+        {
+            GUIStyle style = new GUIStyle(GUI.skin.label);
+            style.fontSize = 24;
+            style.alignment = TextAnchor.MiddleCenter;
+
+            GUI.Label(
+                new Rect(0, 0, Screen.width, Screen.height),
+                _sourceInterface.GetType().Name,
+                style
+            );
         }
 
         private void OnDisable()
