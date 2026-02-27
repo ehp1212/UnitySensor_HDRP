@@ -10,6 +10,13 @@ https://github.com/Field-Robotics-Japan/UnitySensors/tree/v3.0.0b
 
 ## Overview
 
+<figure align="center">
+  <img src=".image/hdrp.gif" width="700"/>
+  <figcaption>
+    <em>HDRP-compatible UnitySensors extension with custom depth extraction</em>
+  </figcaption>
+</figure>
+
 UnitySensors is originally designed for Unity Built-in Render Pipeline.
 This project adapts and extends it for:
 
