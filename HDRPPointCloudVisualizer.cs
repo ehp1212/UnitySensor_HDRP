@@ -1,5 +1,3 @@
-using System;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnitySensors.Attribute;
 using UnitySensors.DataType.Sensor.PointCloud;
@@ -78,11 +76,9 @@ namespace Script
             _bufferSize = PointUtilities.pointDataSizes[typeof(T)];
 
             _mesh = new Mesh();
-            _mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32; // 포인트 많으면 안전
+            _mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32; 
 
-// 카메라 빌보드가 아니라도 “쿼드 한 장”의 로컬 정점(원점 기준)을 만들어 둠
-// 실제 크기/방향은 셰이더에서 조절하는 게 제일 깔끔함(=pointSize)
-            _mesh.vertices = new Vector3[]
+            _mesh.vertices = new[]
             {
                 new Vector3(-0.5f, -0.5f, 0f), // 0
                 new Vector3( 0.5f, -0.5f, 0f), // 1
@@ -90,7 +86,7 @@ namespace Script
                 new Vector3(-0.5f,  0.5f, 0f), // 3
             };
 
-            _mesh.uv = new Vector2[]
+            _mesh.uv = new[]
             {
                 new Vector2(0,0),
                 new Vector2(1,0),
@@ -98,7 +94,6 @@ namespace Script
                 new Vector2(0,1),
             };
 
-// 삼각형 2개(인덱스 6개)
             _mesh.SetIndices(
                 new int[] { 0, 1, 2, 0, 2, 3 },
                 MeshTopology.Triangles,
