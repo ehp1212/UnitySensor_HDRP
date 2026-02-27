@@ -132,7 +132,7 @@ namespace Script
 
         private void UpdateCamera()
         {
-            var cam = Camera.main;
+            var cam = UnityEngine.Camera.main;
             if (cam == null) return;
             Material.SetVector(CameraRightWs, cam.transform.right);
             Material.SetVector(CameraUpWs, cam.transform.up);
