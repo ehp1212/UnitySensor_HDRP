@@ -16,8 +16,6 @@ namespace Script
     {
         [SerializeField, Interface(typeof(IPointCloudInterface<PointXYZI>))]
         private Object _source;
-
-        private float _maxDistance = 5;
         
         protected override void Start()
         {
@@ -27,8 +25,6 @@ namespace Script
             }
             base.SetSource(_source as IPointCloudInterface<PointXYZI>);
             base.Start();
-            
-            Material.SetFloat("_MaxDistance", _maxDistance);
         }
     }
     
@@ -38,10 +34,19 @@ namespace Script
         private static readonly int PointsBuffer = Shader.PropertyToID("PointsBuffer");
         private static readonly int SensorPosition = Shader.PropertyToID("_SensorPosition");
         
-        private IPointCloudInterface<T> _sourceInterface;
-        private Transform _transform;
+        private static readonly int CameraRightWs = Shader.PropertyToID("_CameraRightWS");
+        private static readonly int CameraUpWs = Shader.PropertyToID("_CameraUpWS");
+        
+        private static readonly int MaxDistance = Shader.PropertyToID("_MaxDistance");
+        private static readonly int MinRedDistance = Shader.PropertyToID("_MinRedDistance");
+        private static readonly int PointSize = Shader.PropertyToID("_PointSize");
 
         [SerializeField] private Shader _shader;
+        [SerializeField] private float _maxDistance = 30;
+        [SerializeField] private float _pointSize = 0.1f;
+        
+        private IPointCloudInterface<T> _sourceInterface;
+        private Transform _transform;
         
         private Mesh _mesh;
         private Material _mat;
@@ -71,13 +76,46 @@ namespace Script
             
             _transform = this.transform;
             _bufferSize = PointUtilities.pointDataSizes[typeof(T)];
-            
+
             _mesh = new Mesh();
-            _mesh.vertices = new Vector3[1] { Vector3.zero };
-            _mesh.SetIndices(new int[1] { 0 }, MeshTopology.Points, 0);
+            _mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32; // 포인트 많으면 안전
+
+// 카메라 빌보드가 아니라도 “쿼드 한 장”의 로컬 정점(원점 기준)을 만들어 둠
+// 실제 크기/방향은 셰이더에서 조절하는 게 제일 깔끔함(=pointSize)
+            _mesh.vertices = new Vector3[]
+            {
+                new Vector3(-0.5f, -0.5f, 0f), // 0
+                new Vector3( 0.5f, -0.5f, 0f), // 1
+                new Vector3( 0.5f,  0.5f, 0f), // 2
+                new Vector3(-0.5f,  0.5f, 0f), // 3
+            };
+
+            _mesh.uv = new Vector2[]
+            {
+                new Vector2(0,0),
+                new Vector2(1,0),
+                new Vector2(1,1),
+                new Vector2(0,1),
+            };
+
+// 삼각형 2개(인덱스 6개)
+            _mesh.SetIndices(
+                new int[] { 0, 1, 2, 0, 2, 3 },
+                MeshTopology.Triangles,
+                0,
+                true
+            );
+
+            _mesh.RecalculateBounds();
+            
+            
             _argsBuffer = new ComputeBuffer(1, _args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
             
             UpdateBuffers();
+                        
+            Material.SetFloat(MaxDistance, _maxDistance);
+            Material.SetFloat(MinRedDistance, 1);
+            Material.SetFloat(PointSize, _pointSize);
         }
 
         protected override void Visualize()
@@ -90,8 +128,19 @@ namespace Script
         private void Update()
         {
             UpdateSensorPosition();
-            
-            Graphics.DrawMeshInstancedIndirect(_mesh, 0, _mat, new Bounds(Vector3.zero, new Vector3(100.0f, 100.0f, 100.0f)), _argsBuffer);
+            UpdateCamera();
+
+            var range = _maxDistance + 5f;
+            var b = new Bounds(transform.position, Vector3.one * (range * 2f));
+            Graphics.DrawMeshInstancedIndirect(_mesh, 0, _mat, b, _argsBuffer);
+        }
+
+        private void UpdateCamera()
+        {
+            var cam = Camera.main;
+            if (cam == null) return;
+            Material.SetVector(CameraRightWs, cam.transform.right);
+            Material.SetVector(CameraUpWs, cam.transform.up);
         }
 
         private void UpdateSensorPosition()
@@ -105,12 +154,11 @@ namespace Script
             _pointsBuffer = new ComputeBuffer(_sourceInterface.pointsNum, _bufferSize);
             _pointsBuffer.SetData(_sourceInterface.pointCloud.points);
             _mat.SetBuffer(PointsBuffer, _pointsBuffer);
-
+            
             uint numIndices = (_mesh != null) ? (uint)_mesh.GetIndexCount(0) : 0;
-            _args[0] = numIndices;
-            _args[1] = (uint)_sourceInterface.pointsNum;
+            _args[0] = numIndices;                 // 이제 6이 됨
+            _args[1] = (uint)_sourceInterface.pointsNum; // 인스턴스 개수 = 포인트 개수
             _argsBuffer.SetData(_args);
-
             _cachedPointsCount = _sourceInterface.pointsNum;
         }
 

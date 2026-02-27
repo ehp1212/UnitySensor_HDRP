@@ -1,22 +1,18 @@
 Shader "Custom/HDRPPointCloud"
 {
-    Properties
-    {
-        _SensorPosition ("Sensor Position", Vector) = (0, 0, 0)
-        _MaxDistance ("Max Distance", Float) = 50
-        _PointSize ("Point Size", Float) = 2
-    }
-
     HLSLINCLUDE
     #pragma target 4.5
     #include "UnityCG.cginc"
     StructuredBuffer<float4> PointsBuffer;
     float4x4 LocalToWorldMatrix;
 
-    float _MinDistance;
     float _MaxDistance;
+    
     float _PointSize;
+    float3 _CameraRightWS;
+    float3 _CameraUpWS;
 
+    float _MinRedDistance; 
     float3 _SensorPosition;
     
     struct Attributes
@@ -42,11 +38,18 @@ Shader "Custom/HDRPPointCloud"
     {
         Varyings OUT;
 
-        float3 localPos = PointsBuffer[IN.instanceID].xyz;
-        float3 worldPos = mul(LocalToWorldMatrix, float4(localPos, 1.0)).xyz;
-        OUT.positionCS = mul(UNITY_MATRIX_VP, float4(worldPos, 1.0));
-        
-        OUT.worldPos = worldPos;
+        float3 localPos = PointsBuffer[IN.instanceID];
+        float3 worldCenter = mul(LocalToWorldMatrix, float4(localPos,1)).xyz;
+
+        float2 quad = IN.vertex.xy;
+
+        float3 worldOffset =
+            (_CameraRightWS * quad.x + _CameraUpWS * quad.y) * _PointSize;
+
+        float3 worldPos = worldCenter + worldOffset;
+
+        OUT.positionCS = mul(UNITY_MATRIX_VP, float4(worldPos,1));
+        OUT.worldPos = worldCenter; // 컬러는 중심 기준
 
         return OUT;
     }
@@ -54,17 +57,18 @@ Shader "Custom/HDRPPointCloud"
     float4 Frag(Varyings IN) : SV_Target
     {
         float distance = length(IN.worldPos - _SensorPosition);
+        // Force red in min distance
+        if (distance < _MinRedDistance)
+        {
+            return float4(1,0,0,1); 
+        }
+        
+        // RViz Distance Hue Mapping
         float t = saturate(distance / _MaxDistance);
+        float hue = t * 0.7;
+        float3 color = HSVtoRGB(float3(hue, 1.0, 1.0));
 
-        float3 color;
-        if (t < 0.25)
-            color = float3(1,0,0);      // red
-        else if (t < 0.75)
-            color = lerp(float3(1,0,0), float3(0,1,1), t);
-        else
-            color = float3(0,1,1);      // blue        
-
-        return float4(color,1);
+        return float4(color, 1.0);
     }
 
     ENDHLSL
@@ -75,6 +79,10 @@ Shader "Custom/HDRPPointCloud"
 
         Pass
         {
+            Cull Off
+            ZWrite On
+            ZTest LEqual
+            
             Name "Forward"
             Tags { "LightMode"="ForwardOnly" }
 
