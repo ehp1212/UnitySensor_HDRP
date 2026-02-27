@@ -54,6 +54,7 @@ namespace Script
         private uint[] _args = new uint[5] { 0, 0, 0, 0, 0 };
         private int _cachedPointsCount = -1;
         private int _bufferSize;
+        private UnityEngine.Camera _camera;
 
         protected Material Material => _mat;
         public void SetSource(IPointCloudInterface<T> sourceInterface)
@@ -63,6 +64,7 @@ namespace Script
 
         protected virtual void Start()
         {
+            _camera = UnityEngine.Camera.main;
             if (_shader == null)
             {
                 Debug.LogError("Shader is not assigned!");
@@ -160,12 +162,23 @@ namespace Script
         // TODO: Replace this with editor version
         private void OnGUI()
         {
-            GUIStyle style = new GUIStyle(GUI.skin.label);
-            style.fontSize = 24;
-            style.alignment = TextAnchor.MiddleCenter;
+            if (_camera == null) return;
+
+            var screenPos = _camera.WorldToScreenPoint(transform.position);
+            if (screenPos.z < 0)
+                return;
+            
+            var style = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 24,
+                alignment = TextAnchor.MiddleCenter
+            };
+            
+            var x = screenPos.x;
+            var y = Screen.height - screenPos.y;
 
             GUI.Label(
-                new Rect(0, 0, Screen.width, Screen.height),
+                new Rect(x - 100, y - 15, 200, 100),
                 _sourceInterface.GetType().Name,
                 style
             );
