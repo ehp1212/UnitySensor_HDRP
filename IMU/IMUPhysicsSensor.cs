@@ -1,3 +1,4 @@
+using Sensor;
 using Unity.Collections;
 using UnityEngine;
 using UnitySensors.Interface.Sensor;
@@ -52,7 +53,7 @@ namespace Script.IMU
             _accelBias = GaussianNoiseVector(accelBiasStd);
             _gyroBias  = GaussianNoiseVector(gyroBiasStd);
             
-            _velocity_last = _rigidbody.velocity;
+            _velocity_last = _rigidbody.linearVelocity;
         }
 
         protected override void FixedUpdate()
@@ -65,7 +66,7 @@ namespace Script.IMU
         {
             var dt = Time.fixedDeltaTime;
 
-            _velocity_tmp = _rigidbody.velocity;
+            _velocity_tmp = _rigidbody.linearVelocity;
 
             // World acceleration 
             var accel_world = (_velocity_tmp - _velocity_last) / dt;

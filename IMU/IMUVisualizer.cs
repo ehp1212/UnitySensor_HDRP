@@ -6,7 +6,7 @@ using UnitySensors.Visualization;
 namespace Script.IMU
 {
     /// <summary>
-    /// Visualize class for IMU
+    /// Visualize class for IMU data from Unity
     /// </summary>
     [RequireComponent(typeof(IMUPhysicsSensor))]
     public class IMUVisualizer : Visualizer

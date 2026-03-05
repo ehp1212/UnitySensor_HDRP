@@ -1,4 +1,4 @@
-Shader "Custom/HDRPPointCloud"
+Shader "Custom/HDRPPointCloudIndirect"
 {
     HLSLINCLUDE
     #pragma target 4.5
@@ -39,10 +39,9 @@ Shader "Custom/HDRPPointCloud"
         Varyings OUT;
 
         float3 localPos = PointsBuffer[IN.instanceID];
-        float3 worldCenter = mul(LocalToWorldMatrix, float4(localPos,1)).xyz;
-
         float2 quad = IN.vertex.xy;
-
+      
+        float3 worldCenter = mul(LocalToWorldMatrix, float4(localPos,1)).xyz;
         float3 worldOffset =
             (_CameraRightWS * quad.x + _CameraUpWS * quad.y) * _PointSize;
 

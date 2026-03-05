@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnitySensors.Interface.Std;
 
-namespace Script
+namespace Sensor
 {
     public abstract class UnityPhysicsSensor : MonoBehaviour, ITimeInterface
     {

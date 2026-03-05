@@ -1,32 +1,15 @@
 using UnityEngine;
-using UnitySensors.Attribute;
-using UnitySensors.DataType.Sensor.PointCloud;
 using UnitySensors.Interface.Sensor;
 using UnitySensors.Interface.Sensor.PointCloud;
-using UnitySensors.Sensor;
 using UnitySensors.Utils.PointCloud;
-using UnitySensors.Visualization;
-using Object = UnityEngine.Object;
 
-namespace Script
+namespace Sensor.Visualizer
 {
-    public class HDRPPointCloudVisualizer : HDRPPointCloudVisualizer<PointXYZI>
-    {
-        [SerializeField, Interface(typeof(IPointCloudInterface<PointXYZI>))]
-        private Object _source;
-        
-        protected override void Start()
-        {
-            if (_source is UnitySensor)
-            {
-                (_source as UnitySensor).onSensorUpdated += Visualize;
-            }
-            base.SetSource(_source as IPointCloudInterface<PointXYZI>);
-            base.Start();
-        }
-    }
-    
-    public class HDRPPointCloudVisualizer<T> : Visualizer where T : struct, IPointInterface
+    /// <summary>
+    /// Visualizer class using DrawMeshInstancedIndirect
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public abstract class HDRPPointCloudVisualizerIndirect<T> : UnitySensors.Visualization.Visualizer where T : struct, IPointInterface
     {
         private static readonly int LocalToWorldMatrix = Shader.PropertyToID("LocalToWorldMatrix");
         private static readonly int PointsBuffer = Shader.PropertyToID("PointsBuffer");
@@ -54,7 +37,7 @@ namespace Script
         private uint[] _args = new uint[5] { 0, 0, 0, 0, 0 };
         private int _cachedPointsCount = -1;
         private int _bufferSize;
-        private UnityEngine.Camera _camera;
+        private Camera _camera;
 
         protected Material Material => _mat;
         public void SetSource(IPointCloudInterface<T> sourceInterface)
@@ -77,6 +60,18 @@ namespace Script
             _transform = this.transform;
             _bufferSize = PointUtilities.pointDataSizes[typeof(T)];
 
+            CreateQuad();
+            _argsBuffer = new ComputeBuffer(1, _args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
+            
+            UpdateBuffers();
+                        
+            Material.SetFloat(MaxDistance, _maxDistance);
+            Material.SetFloat(MinRedDistance, 1);
+            Material.SetFloat(PointSize, _pointSize);
+        }
+
+        private void CreateQuad()
+        {
             _mesh = new Mesh();
             _mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32; 
 
@@ -104,15 +99,6 @@ namespace Script
             );
 
             _mesh.RecalculateBounds();
-            
-            
-            _argsBuffer = new ComputeBuffer(1, _args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
-            
-            UpdateBuffers();
-                        
-            Material.SetFloat(MaxDistance, _maxDistance);
-            Material.SetFloat(MinRedDistance, 1);
-            Material.SetFloat(PointSize, _pointSize);
         }
 
         protected override void Visualize()
@@ -153,8 +139,8 @@ namespace Script
             _mat.SetBuffer(PointsBuffer, _pointsBuffer);
             
             uint numIndices = (_mesh != null) ? (uint)_mesh.GetIndexCount(0) : 0;
-            _args[0] = numIndices;                 // 이제 6이 됨
-            _args[1] = (uint)_sourceInterface.pointsNum; // 인스턴스 개수 = 포인트 개수
+            _args[0] = numIndices;               
+            _args[1] = (uint)_sourceInterface.pointsNum;
             _argsBuffer.SetData(_args);
             _cachedPointsCount = _sourceInterface.pointsNum;
         }
