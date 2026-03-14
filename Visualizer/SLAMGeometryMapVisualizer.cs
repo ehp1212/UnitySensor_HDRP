@@ -35,6 +35,7 @@ namespace Sensor.Visualizer
         {
             if (!_show) return;
 
+            /*
             var addedPoints = _scanRaycastSensor.GetHitPoints();
             for (int i = 0; i < addedPoints.Length; i++)
             {
@@ -65,7 +66,7 @@ namespace Sensor.Visualizer
                 }
             }
             
-            UpdatePointCloud(_points.ToArray(), _points.Count);
+            UpdatePointCloud(_points.ToArray(), _points.Count);*/
         }
         
         public static uint PackColor(byte r, byte g, byte b, byte a = 255)
