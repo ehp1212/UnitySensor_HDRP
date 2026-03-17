@@ -1,0 +1,40 @@
+#pragma kernel CSMain
+
+Texture2D<float> depthTexture;
+RWStructuredBuffer<float3> points;
+
+int width;
+int height;
+
+float fx;
+float fy;
+float cx;
+float cy;
+
+float4x4 _CameraToWorld;
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    uint x = id.x;
+    uint y = id.y;
+    
+    if (x >= width || y >= height) return;
+    float depth = depthTexture.Load(int3(x,y,0)) * 20;
+    if(depth <= 0) return;
+    
+    float3 localPos;
+    localPos.x = (x - cx) * depth / fx;
+    localPos.y = (y - cy) * depth / fy;
+    localPos.z = depth;
+    
+    float3 camPos = localPos;
+    float3 ros2;
+    
+    ros2.x = camPos.z;
+    ros2.y = -camPos.x;
+    ros2.z = camPos.y;
+    
+    uint index = y * width + x;    
+    points[index] = ros2;
+}

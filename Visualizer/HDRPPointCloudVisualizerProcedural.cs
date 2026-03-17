@@ -17,6 +17,7 @@ namespace Sensor.Visualizer
         private static readonly int CameraRightWs = Shader.PropertyToID("_CameraRightWS");
         private static readonly int CameraUpWs = Shader.PropertyToID("_CameraUpWS");
         
+        [SerializeField] private LayerMask _layerMask;
         [SerializeField] private Shader _shader;
         [SerializeField] private float _pointSize = 0.2f;
         
@@ -39,9 +40,12 @@ namespace Sensor.Visualizer
                 enabled = false;
                 return;
             }
+            
             _camera = Camera.main;
             _mat = new Material(_shader);
             _bounds = new(transform.position, Vector3.one * 500f); // Avoid culling by making big bounds
+            _layerMask = LayerMask.NameToLayer("Debug");
+            
             Allocate(_maxPointCount);
         }
 
@@ -86,7 +90,7 @@ namespace Sensor.Visualizer
             _bounds.center = transform.position;
             Graphics.DrawMeshInstancedProcedural(
                 _mesh, 0, _mat, _bounds, _pointCount,
-                null, ShadowCastingMode.Off, false, gameObject.layer
+                null, ShadowCastingMode.Off, false, _layerMask
             );
         }
 

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnitySensors.Interface.Sensor;
 using UnitySensors.Interface.Sensor.PointCloud;
 using UnitySensors.Utils.PointCloud;
@@ -26,6 +27,8 @@ namespace Sensor.Visualizer
         [SerializeField] private float _maxDistance = 30;
         [SerializeField] private float _pointSize = 0.1f;
         
+        [SerializeField] private LayerMask _layerMask;
+        
         private IPointCloudInterface<T> _sourceInterface;
         private Transform _transform;
         
@@ -47,7 +50,7 @@ namespace Sensor.Visualizer
 
         protected virtual void Start()
         {
-            _camera = UnityEngine.Camera.main;
+            _camera = Camera.main;
             if (_shader == null)
             {
                 Debug.LogError("Shader is not assigned!");
@@ -56,7 +59,7 @@ namespace Sensor.Visualizer
             }
             
             _mat = new Material(_shader);
-            
+            _layerMask = LayerMask.NameToLayer("Debug");
             _transform = this.transform;
             _bufferSize = PointUtilities.pointDataSizes[typeof(T)];
 
@@ -115,15 +118,14 @@ namespace Sensor.Visualizer
 
             var range = _maxDistance + 5f;
             var b = new Bounds(transform.position, Vector3.one * (range * 2f));
-            Graphics.DrawMeshInstancedIndirect(_mesh, 0, _mat, b, _argsBuffer);
+            Graphics.DrawMeshInstancedIndirect(_mesh, 0, _mat, b, _argsBuffer, 0, null, ShadowCastingMode.Off, false, _layerMask);
         }
 
         private void UpdateCamera()
         {
-            var cam = UnityEngine.Camera.main;
-            if (cam == null) return;
-            Material.SetVector(CameraRightWs, cam.transform.right);
-            Material.SetVector(CameraUpWs, cam.transform.up);
+            if (_camera == null) return;
+            Material.SetVector(CameraRightWs, _camera.transform.right);
+            Material.SetVector(CameraUpWs, _camera.transform.up);
         }
 
         private void UpdateSensorPosition()

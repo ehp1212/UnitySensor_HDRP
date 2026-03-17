@@ -20,6 +20,9 @@ namespace Sensor.Lidar._2D
             
             _lineSampleCount = _sensor.Rays.Length / _lineRendererOffset;
             _lineRenderers = new LineRenderer[_lineSampleCount];
+            
+            var debugLayer = LayerMask.NameToLayer("Debug");
+            Debug.Log($"Setting scan ray layer : {debugLayer}");
             for (int i = 0; i < _lineSampleCount; i++)
             {
                 var obj = new GameObject($"LineRenderer-[{i}]", typeof(LineRenderer));
@@ -32,6 +35,7 @@ namespace Sensor.Lidar._2D
                 lr.material = new Material(Shader.Find("Sprites/Default"));
 
                 _lineRenderers[i] = lr;
+                lr.gameObject.layer = debugLayer;
             }
         }
 

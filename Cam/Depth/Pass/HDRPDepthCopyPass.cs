@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
-namespace Script.Camera.Depth.Pass
+namespace Sensor.Cam.Depth.Pass
 {
     internal class HDRPDepthCopyPass : CustomPass
     {

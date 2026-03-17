@@ -22,7 +22,7 @@ namespace Sensor
             
             var pointInterface = _source as IPointCloudInterface<PointXYZI>;
             if (pointInterface == null) return;
-            SetSource(_source as IPointCloudInterface<PointXYZI>);
+            SetSource(_source as IPointCloudInterface<PointXYZI>); 
             base.Start();
         }
     }

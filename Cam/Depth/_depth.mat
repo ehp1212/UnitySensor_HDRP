@@ -24,8 +24,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: _depth
-  m_Shader: {fileID: -6465566751694194690, guid: fda7e767f79bec542983d75e21aa9dcb,
-    type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: fda7e767f79bec542983d75e21aa9dcb, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -216,6 +215,7 @@ Material:
     - _PPDPrimitiveLength: 1
     - _PPDPrimitiveWidth: 1
     - _PerPixelSorting: 0
+    - _Range: 20
     - _RayTracing: 0
     - _ReceivesSSR: 1
     - _ReceivesSSRTransparent: 0
