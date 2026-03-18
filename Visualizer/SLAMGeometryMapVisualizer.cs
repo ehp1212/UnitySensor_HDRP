@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Sensor.Lidar._2D;
 using UnityEngine;
-using UnitySensors.DataType.Sensor.PointCloud;
 
 namespace Sensor.Visualizer
 {

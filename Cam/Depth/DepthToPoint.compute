@@ -1,7 +1,11 @@
 #pragma kernel CSMain
 
 Texture2D<float> depthTexture;
-RWStructuredBuffer<float3> points;
+
+/* Depth texture image */
+RWStructuredBuffer<float> flippedDepthBuffer;
+/* Point Cloud */
+RWStructuredBuffer<float3> pointsBuffer;
 
 int width;
 int height;
@@ -11,8 +15,6 @@ float fy;
 float cx;
 float cy;
 
-float4x4 _CameraToWorld;
-
 [numthreads(8,8,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
@@ -20,7 +22,15 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     uint y = id.y;
     
     if (x >= width || y >= height) return;
+    
+    float flippedY = height - 1 - y;
+    float flippedDepth = depthTexture.Load(int3(x, flippedY, 0));
+    
     float depth = depthTexture.Load(int3(x,y,0)) * 20;
+
+    uint index = y * width + x;
+    flippedDepthBuffer[index] = flippedDepth;
+    
     if(depth <= 0) return;
     
     float3 localPos;
@@ -30,11 +40,10 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     
     float3 camPos = localPos;
     float3 ros2;
+
+    ros2.x = camPos.x;
+    ros2.y = -camPos.y;
+    ros2.z = camPos.z;
     
-    ros2.x = camPos.z;
-    ros2.y = -camPos.x;
-    ros2.z = camPos.y;
-    
-    uint index = y * width + x;    
-    points[index] = ros2;
+    pointsBuffer[index] = ros2;
 }
